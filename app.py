@@ -2,12 +2,25 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 import os
+from dotenv import load_dotenv
+from google import genai
 import json
 
 # 以后再补
 from pdf_loader import extract_pdf_content
 from prompts import build_paper_summary_prompt, build_global_summary_prompt
 
+class GeminiClient:
+    def __init__(self, api_key: str, model_name: str):
+        self.model_name = model_name
+        self.client = genai.Client(api_key=api_key)
+
+    def generate(self, prompt: str) -> str:
+        response = self.client.models.generate_content(
+            model=self.model_name,
+            contents=prompt,
+        )
+        return response.text
 
 def parse_args():
     """
@@ -122,7 +135,7 @@ def summarize_single_paper(client, paper, topic):
     print(prompt[:1000])
     print("===== END =====")
     # 3. 调模型
-    # response = client.generate(prompt)
+    response_text = client.generate(prompt)
     # 4. 解析结果
     # summary = response.strip()
     # 5. return 结构化结果
@@ -130,7 +143,7 @@ def summarize_single_paper(client, paper, topic):
     return {
         "file_name": paper["file_name"],
         "title": paper["title"],
-        "summary": "TODO: summary",
+        "summary": response_text,
         "method_and_contribution": "TODO: method and contribution",
         "relation_to_topic": "TODO: relation to topic",
         "evidence_quotes": ["TODO quote 1", "TODO quote 2"],
@@ -288,8 +301,17 @@ def create_llm_client():
     创建模型客户端
     这一版先单独封装，main 里不要直接写一大坨初始化逻辑
     """
-    # 后面再接 API key / base_url / model name
-    return None
+    # 1.把.env里的变量加载进环境
+    load_dotenv()
+    
+    # 2. 从环境变量里获取 API Key
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("缺少 GEMINI_API_KEY，请检查 .env 文件")
+    print("API key prefix:", repr(api_key[:6]))
+    model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    print("Model:", repr(model_name))
+    return GeminiClient(api_key=api_key, model_name=model_name)
 
 
 def main():
