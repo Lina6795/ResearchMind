@@ -1,3 +1,10 @@
+# Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 # V0-普通LLM Demo
 ## MVP 
 - 每篇论文的输出：论文摘要总结；方法/贡献点；与当前课题的关系
