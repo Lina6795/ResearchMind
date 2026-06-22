@@ -90,16 +90,8 @@ def load_papers(pdf_paths):
 
     for pdf_path in pdf_paths:
         # 调用 pdf_loader.py 里的函数
-        # paper = extract_pdf_content(pdf_path)
-        # papers.append(paper)
-
-        # 现在还没写 pdf_loader.py，可以先用假数据顶上
-        fake_paper = {
-            "file_name": str(pdf_path),
-            "title": "TODO: paper title",
-            "text": "TODO: paper text",
-        }
-        papers.append(fake_paper)
+        paper = extract_pdf_content(pdf_path)
+        papers.append(paper)
 
     return papers
 
@@ -122,11 +114,13 @@ def summarize_single_paper(client, paper, topic):
         'evidence_quotes': [...]
     }
     """
-    # # 1. 从 paper 里拿到 title / text
-    # title = paper["title"]
-    # text = paper["text"]
+    # # 1. 从 paper 里拿到text
+    text = paper["text"]
     # # 2. 构造 prompt
-    # prompt = build_paper_summary_prompt(topic, text)
+    prompt = build_paper_summary_prompt(topic, text)
+    print("===== PAPER SUMMARY PROMPT =====")
+    print(prompt[:1000])
+    print("===== END =====")
     # 3. 调模型
     # response = client.generate(prompt)
     # 4. 解析结果
