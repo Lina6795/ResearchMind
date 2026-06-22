@@ -22,19 +22,15 @@ def build_paper_summary_prompt(topic: str, paper_text: str) -> str:
 论文内容：
 {paper_text}
 
-请严格按照以下格式输出：
+请严格输出 JSON，不要输出任何额外解释，不要使用 Markdown 代码块。
 
-## 核心内容
-用 3-5 句话概括论文研究的问题、目标和主要结论。
-
-## 方法与贡献
-总结论文使用的方法、核心技术路线，以及主要贡献点。
-
-## 与当前课题关系
-结合“当前研究主题”，说明这篇论文对当前课题可能有什么启发、帮助或差异。
-
-## 证据摘录
-从论文原文中摘录 2-3 段最能支持你总结的原文句子或短段落。
+返回格式如下：
+{{
+  "summary": "...",
+  "method_and_contribution": "...",
+  "relation_to_topic": "...",
+  "evidence_quotes": ["...", "..."]
+}}
         """
     return prompt.strip()
 

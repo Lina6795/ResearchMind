@@ -109,6 +109,24 @@ def load_papers(pdf_paths):
     return papers
 
 
+def clean_json_response(response_text:str)->str:
+    """
+    清理 JSON 响应
+    输入：模型响应文本
+    输出：清理后的 JSON 字符串
+    """
+    text = response_text.strip()
+
+    if text.startswith("```json"):
+        text = text.removeprefix("```json").strip()
+    if text.endswith("```"):
+        text = text.removeprefix("```").strip()
+    if text.endswith("```"):
+        text = text.removesuffix("```").strip()
+    
+    return text
+
+
 def summarize_single_paper(client, paper, topic):
     """
     对单篇论文做总结
@@ -131,22 +149,19 @@ def summarize_single_paper(client, paper, topic):
     text = paper["text"]
     # # 2. 构造 prompt
     prompt = build_paper_summary_prompt(topic, text)
-    print("===== PAPER SUMMARY PROMPT =====")
-    print(prompt[:1000])
-    print("===== END =====")
     # 3. 调模型
     response_text = client.generate(prompt)
     # 4. 解析结果
-    # summary = response.strip()
+    parsed = json.loads(clean_json_response(response_text))
     # 5. return 结构化结果
     # 现在模型还没接好时，先返回假结果
     return {
         "file_name": paper["file_name"],
         "title": paper["title"],
-        "summary": response_text,
-        "method_and_contribution": "TODO: method and contribution",
-        "relation_to_topic": "TODO: relation to topic",
-        "evidence_quotes": ["TODO quote 1", "TODO quote 2"],
+        "summary": parsed["summary"],
+        "method_and_contribution": parsed["method_and_contribution"],
+        "relation_to_topic": parsed["relation_to_topic"],
+        "evidence_quotes": parsed["evidence_quotes"],
     }
 
 
@@ -308,9 +323,7 @@ def create_llm_client():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("缺少 GEMINI_API_KEY，请检查 .env 文件")
-    print("API key prefix:", repr(api_key[:6]))
     model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    print("Model:", repr(model_name))
     return GeminiClient(api_key=api_key, model_name=model_name)
 
 
