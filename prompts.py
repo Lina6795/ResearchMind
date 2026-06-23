@@ -79,18 +79,12 @@ def build_global_summary_prompt(topic: str, meeting_notes: str, paper_summaries:
 {papers_text}
 
 请严格按照以下格式输出：
-
-## 导师要求
-提炼组会记录中导师明确提出的要求、关注点或修改意见。
-
-## 下周任务
-给出 3-5 条清晰、可执行的任务。
-
-## 背景草稿
-写一段适合论文“研究背景”部分的草稿。
-
-## 创新点草稿
-写一段适合作为“可能创新点”初稿的内容；如果信息不足，请明确说明这是初步方向。
+{{
+  "advisor_requirements": "...",
+  "next_week_tasks": ["...", "..."],
+  "background_draft": "...",
+  "innovation_draft": "...",
+}}
         """
     return prompt.strip()
 

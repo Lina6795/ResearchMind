@@ -119,7 +119,7 @@ def clean_json_response(response_text:str)->str:
 
     if text.startswith("```json"):
         text = text.removeprefix("```json").strip()
-    if text.endswith("```"):
+    if text.startswith("```"):
         text = text.removeprefix("```").strip()
     if text.endswith("```"):
         text = text.removesuffix("```").strip()
@@ -153,8 +153,7 @@ def summarize_single_paper(client, paper, topic):
     response_text = client.generate(prompt)
     # 4. 解析结果
     parsed = json.loads(clean_json_response(response_text))
-    # 5. return 结构化结果
-    # 现在模型还没接好时，先返回假结果
+    # 5. return 结果
     return {
         "file_name": paper["file_name"],
         "title": paper["title"],
@@ -197,25 +196,13 @@ def generate_global_output(client, topic, meeting_notes, paper_summaries):
     }
     """
     # # 1. 构造全局 prompt
-    # prompt = build_global_summary_prompt(topic, meeting_notes, paper_summaries)
+    prompt = build_global_summary_prompt(topic, meeting_notes, paper_summaries)
     # # 2. 调模型
-    # response = client.generate(prompt)
+    response_text = client.generate(prompt)
     # # 3. 解析结果
-    # global_output = response.strip()
-    # # 4. 解析结果
-    # global_output = json.loads(global_output)
+    global_output = json.loads(clean_json_response(response_text))
     # # 4. return dict
-
-    # 现在先返回假数据
-    return {
-        "advisor_requirements": "TODO: advisor requirements",
-        "next_week_tasks": [
-            "TODO: task 1",
-            "TODO: task 2",
-        ],
-        "background_draft": "TODO: background draft",
-        "innovation_draft": "TODO: innovation draft",
-    }
+    return global_output
 
 
 def build_final_result(topic, paper_summaries, global_output):
