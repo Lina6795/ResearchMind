@@ -19,6 +19,31 @@ def read_pdf_text(pdf_path: str) -> str:
 
     return raw_text
 
+def should_skip_line(line: str) -> bool:
+    """
+    判断是否为无效行
+    输入：字符串
+    输出：布尔值
+    """
+    stripped = line.strip()
+
+    if not stripped:
+        return True
+
+    if stripped in {"目录", "摘", "要", "引", "言"}:
+        return True
+
+    if stripped.isdigit():
+        return True
+
+    if len(stripped) == 1 and stripped.isalpha():
+        return True
+
+    if "...." in stripped:
+        return True
+
+    return False
+
 def clean_pdf_text(raw_text: str) -> str:
     """
     清理 PDF 文本
@@ -31,12 +56,38 @@ def clean_pdf_text(raw_text: str) -> str:
     cleaned_lines = []
     for line in lines:
         stripped = line.strip()
-        if stripped:
-            cleaned_lines.append(stripped)
+        if should_skip_line(stripped):
+            continue
+        cleaned_lines.append(stripped)
     # 3.合并文本
     cleaned_text = "\n".join(cleaned_lines)
     return cleaned_text
     
+def is_bad_title_line(line: str) -> bool:
+    """
+    判断是否为无效标题行
+    输入：字符串
+    输出：布尔值
+    """
+
+    lower_line = line.lower()
+
+    if "draft version" in lower_line:
+        return True
+
+    if "目录" in line:
+        return True
+
+    if len(line.strip()) < 5:
+        return True
+
+    if len(line.strip()) > 200:
+        return True
+
+    if line.strip().isdigit():
+        return True
+
+    return False
 
 def guess_title(cleaned_text: str, pdf_path: str) -> str:
     """
@@ -46,10 +97,14 @@ def guess_title(cleaned_text: str, pdf_path: str) -> str:
     """
     # 1.切分为文本列表
     lines = cleaned_text.splitlines()
-    # 2.先在清洗后的前几行找到第一个长度适中的非空行
-    for line in lines[:10]:
-        if 5 <= len(line) <= 200:
-            return line
+    # 2.先在清洗后的前几行找到符合条件的标题
+    for line in lines[:30]:
+        candidate = line.strip()
+        if not candidate:
+            continue
+        if is_bad_title_line(candidate):
+            continue
+        return candidate
     # 3.如果找不到，就用文件名
     return Path(pdf_path).stem # .stem 作用：提取路径里不带后缀的文件名
 

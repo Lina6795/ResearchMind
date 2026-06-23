@@ -126,6 +126,51 @@ def clean_json_response(response_text:str)->str:
     
     return text
 
+def validate_paper_summary_output(parsed: dict) -> dict:
+    """
+    校验论文篇总结输出
+    输入：解析后的 JSON 字典
+    输出：校验后的 JSON 字典
+    """
+
+    required_keys = ["summary", "method_and_contribution", "relation_to_topic", "evidence_quotes"]
+    for key in required_keys:
+        if key not in parsed:
+            raise ValueError(f"缺少必填字段：{key}")
+    
+    if not isinstance(parsed["summary"], str):
+        raise ValueError("summary 不是字符串")
+    if not isinstance(parsed["method_and_contribution"], str):
+        raise ValueError("method_and_contribution 不是字符串")
+    if not isinstance(parsed["relation_to_topic"], str):
+        raise ValueError("relation_to_topic 不是字符串")
+    if not isinstance(parsed["evidence_quotes"], list):
+        raise ValueError("evidence_quotes 不是列表")
+    return parsed
+
+def validate_global_output(parsed: dict) -> dict:
+    """
+    校验全局总结输出
+    输入：解析后的 JSON 字典
+    输出：校验后的 JSON 字典
+    """
+    required_keys = ["advisor_requirements", "next_week_tasks", "background_draft", "innovation_draft"]
+    for key in required_keys:
+        if key not in parsed:
+            raise ValueError(f"缺少必填字段：{key}")
+    
+    if not isinstance(parsed["advisor_requirements"], str):
+        raise ValueError("advisor_requirements 不是字符串")
+    if not isinstance(parsed["next_week_tasks"], list):
+        raise ValueError("next_week_tasks 不是列表")
+    if not isinstance(parsed["background_draft"], str):
+        raise ValueError("background_draft 不是字符串")
+    if not isinstance(parsed["innovation_draft"], str):
+        raise ValueError("innovation_draft 不是字符串")
+    
+    return parsed
+
+
 
 def summarize_single_paper(client, paper, topic):
     """
@@ -153,6 +198,7 @@ def summarize_single_paper(client, paper, topic):
     response_text = client.generate(prompt)
     # 4. 解析结果
     parsed = json.loads(clean_json_response(response_text))
+    parsed = validate_paper_summary_output(parsed)
     # 5. return 结果
     return {
         "file_name": paper["file_name"],
@@ -201,6 +247,7 @@ def generate_global_output(client, topic, meeting_notes, paper_summaries):
     response_text = client.generate(prompt)
     # # 3. 解析结果
     global_output = json.loads(clean_json_response(response_text))
+    global_output = validate_global_output(global_output)
     # # 4. return dict
     return global_output
 
